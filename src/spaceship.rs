@@ -1,31 +1,27 @@
 use bevy::prelude::*;
 
-use crate::movement::Velocity;
+use crate::{
+    asset_loader::SceneAssets,
+    movement::{Acceleration, MovingObjectBundle, Velocity},
+};
 
 const STARTING_TRANSLATION: Vec3 = Vec3::new(0., 0., -20.);
 const STARTING_VELOCITY: Vec3 = Vec3::new(0., 0., 1.);
-
-#[derive(Bundle)]
-pub struct SpaceshipBundle {
-    velocity: Velocity,
-    model: SceneBundle,
-}
 
 pub struct SpaceshipPlugin;
 
 impl Plugin for SpaceshipPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_spaceship);
+        app.add_systems(PostStartup, spawn_spaceship);
     }
 }
 
-fn spawn_spaceship(mut cmd: Commands, asset_server: Res<AssetServer>) {
-    cmd.spawn(SpaceshipBundle {
-        velocity: Velocity {
-            value: STARTING_VELOCITY,
-        },
+fn spawn_spaceship(mut cmd: Commands, scene_assets: Res<SceneAssets>) {
+    cmd.spawn(MovingObjectBundle {
+        velocity: Velocity::new(STARTING_VELOCITY),
+        acceleration: Acceleration::new(Vec3::ZERO),
         model: SceneBundle {
-            scene: asset_server.load("Spaceship.glb#Scene0"),
+            scene: scene_assets.spaceship.clone(),
             transform: Transform::from_translation(STARTING_TRANSLATION),
             ..default()
         },
