@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     asset_loader::SceneAssets,
-    collision_detection::Collidor,
+    collision_detection::{Collidor, CollidorType},
     movement::{Acceleration, MovingObjectBundle, Velocity},
 };
 
@@ -38,7 +38,7 @@ fn spawn_spaceship(mut cmd: Commands, scene_assets: Res<SceneAssets>) {
         MovingObjectBundle {
             velocity: Vec3::ZERO.into(),
             acceleration: Acceleration::new(Vec3::ZERO),
-            collidor: Collidor::new(SPACESHIP_RADIUS),
+            collidor: Collidor::new(SPACESHIP_RADIUS, CollidorType::Spaceship),
             model: SceneBundle {
                 scene: scene_assets.spaceship.clone(),
                 transform: Transform::from_translation(STARTING_TRANSLATION),
@@ -89,7 +89,7 @@ fn spaceship_weaon_controls(
             MovingObjectBundle {
                 velocity: (-transform.forward() * MISSILE_SPEED).into(),
                 acceleration: Vec3::ZERO.into(),
-                collidor: Collidor::new(MISSILE_RADIUS),
+                collidor: Collidor::new(MISSILE_RADIUS, CollidorType::SpaceshipMissiles),
                 model: SceneBundle {
                     scene: scene_assets.missiles.clone(),
                     transform: Transform::from_translation(

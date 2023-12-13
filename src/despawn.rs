@@ -11,9 +11,9 @@ impl Plugin for DespawnPlugin {
 }
 
 fn despawn_far_away_entities(mut cmd: Commands, query: Query<(Entity, &GlobalTransform)>) {
-    query.iter().for_each(|(entity, transform)| {
+    for (entity, transform) in query.iter() {
         if transform.translation().distance(Vec3::ZERO) > DESPAWN_DISTANCE {
             cmd.entity(entity).despawn_recursive();
         }
-    })
+    }
 }

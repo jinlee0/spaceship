@@ -4,7 +4,9 @@ use bevy::prelude::*;
 use rand::Rng;
 
 use crate::{
-    asset_loader::SceneAssets, collision_detection::Collidor, movement::MovingObjectBundle,
+    asset_loader::SceneAssets,
+    collision_detection::{Collidor, CollidorType},
+    movement::MovingObjectBundle,
 };
 
 const VELOCITY_SCALAR: f32 = 5.;
@@ -65,7 +67,7 @@ fn spawn_asteroid(
         MovingObjectBundle {
             velocity: velocity.into(),
             acceleration: acceleration.into(),
-            collidor: Collidor::new(RADIUS),
+            collidor: Collidor::new(RADIUS, CollidorType::Asteroid),
             model: SceneBundle {
                 scene: scene_assets.asteroids.clone(),
                 transform: Transform::from_translation(translation),
@@ -87,11 +89,11 @@ fn handle_asteroid_collisions(
     query: Query<(Entity, &Collidor), With<Asteroid>>,
 ) {
     for (entity, collidor) in query.iter() {
-        for &collied_entity in collidor.colliding_entities.iter() {
-            if query.get(collied_entity).is_ok() {
-                continue;
+        for collied_entity in collidor.colliding_entities.iter() {
+            match collied_entity.collider_type {
+                CollidorType::Asteroid => continue,
+                _ => cmd.entity(entity).despawn_recursive(),
             }
-            cmd.entity(entity).despawn_recursive();
         }
     }
 }
