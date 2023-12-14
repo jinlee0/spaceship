@@ -5,6 +5,7 @@ use camera::CameraPlugin;
 use collision_detection::CollisionDetectionPlugin;
 use despawn::DespawnPlugin;
 use movement::MovementPlugin;
+use schedule::SchedulePlugin;
 use spaceship::SpaceshipPlugin;
 
 mod asset_loader;
@@ -14,6 +15,7 @@ mod collision_detection;
 mod debug;
 mod despawn;
 mod movement;
+mod schedule;
 mod spaceship;
 
 fn main() {
@@ -33,6 +35,7 @@ fn main() {
         .add_plugins(AsteroidPlugin)
         .add_plugins(CollisionDetectionPlugin)
         .add_plugins(DespawnPlugin)
+        .add_plugins(SchedulePlugin)
         // .add_plugins(DebugPlugin)
         .run();
 }

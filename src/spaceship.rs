@@ -2,15 +2,16 @@ use bevy::prelude::*;
 
 use crate::{
     asset_loader::SceneAssets,
-    collision_detection::{Collidor, CollidorType},
+    collision_detection::Collidor,
     movement::{Acceleration, MovingObjectBundle, Velocity},
+    schedule::InGameSet,
 };
 
 const STARTING_TRANSLATION: Vec3 = Vec3::new(0., 0., -20.);
 const SPACESHIP_SPEED: f32 = 25.;
 const SPACESHIP_ROTATION_SPEED: f32 = 2.5;
 const SPACESHIP_ROLL_SPEED: f32 = 2.5;
-const SPACESHIP_RADIUS: f32 = 5.;
+pub const SPACESHIP_RADIUS: f32 = 5.;
 
 const MISSILE_SPEED: f32 = 50.;
 const MISSILE_FORWARD_SPAWN_SCALAR: f32 = 7.5;
@@ -28,7 +29,9 @@ impl Plugin for SpaceshipPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PostStartup, spawn_spaceship).add_systems(
             Update,
-            (spaceship_movement_controls, spaceship_weaon_controls),
+            (spaceship_movement_controls, spaceship_weaon_controls)
+                .chain()
+                .in_set(InGameSet::UserInput),
         );
     }
 }
@@ -38,7 +41,7 @@ fn spawn_spaceship(mut cmd: Commands, scene_assets: Res<SceneAssets>) {
         MovingObjectBundle {
             velocity: Vec3::ZERO.into(),
             acceleration: Acceleration::new(Vec3::ZERO),
-            collidor: Collidor::new(SPACESHIP_RADIUS, CollidorType::Spaceship),
+            collidor: Collidor::new(SPACESHIP_RADIUS),
             model: SceneBundle {
                 scene: scene_assets.spaceship.clone(),
                 transform: Transform::from_translation(STARTING_TRANSLATION),
@@ -54,7 +57,10 @@ fn spaceship_movement_controls(
     keyboard_input: Res<Input<KeyCode>>,
     time: Res<Time>,
 ) {
-    let (mut transform, mut velocity) = query.single_mut();
+    let (mut transform, mut velocity) = match query.get_single_mut() {
+        Ok(c) => c,
+        Err(_) => return,
+    };
 
     let mut movement = 0.;
     let mut rotation = 0.;
@@ -83,13 +89,18 @@ fn spaceship_weaon_controls(
     keyboard_input: Res<Input<KeyCode>>,
     scene_assets: Res<SceneAssets>,
 ) {
-    let transform = query.single();
+    let transform = if let Ok(t) = query.get_single() {
+        t
+    } else {
+        return;
+    };
+
     if keyboard_input.pressed(KeyCode::Space) {
         cmd.spawn((
             MovingObjectBundle {
                 velocity: (-transform.forward() * MISSILE_SPEED).into(),
                 acceleration: Vec3::ZERO.into(),
-                collidor: Collidor::new(MISSILE_RADIUS, CollidorType::SpaceshipMissiles),
+                collidor: Collidor::new(MISSILE_RADIUS),
                 model: SceneBundle {
                     scene: scene_assets.missiles.clone(),
                     transform: Transform::from_translation(

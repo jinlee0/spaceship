@@ -2,32 +2,19 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 
-#[derive(Debug, Copy, Clone)]
-pub enum CollidorType {
-    Spaceship,
-    SpaceshipMissiles,
-    Asteroid,
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct CollidingEntity {
-    pub entity: Entity,
-    pub collider_type: CollidorType,
-}
+use crate::{astroids::Asteroid, schedule::InGameSet, spaceship::Spaceship};
 
 #[derive(Component, Debug)]
 pub struct Collidor {
     pub radius: f32,
-    pub colliding_entities: Vec<CollidingEntity>,
-    pub collider_type: CollidorType,
+    pub colliding_entities: Vec<Entity>,
 }
 
 impl Collidor {
-    pub fn new(radius: f32, collider_type: CollidorType) -> Self {
+    pub fn new(radius: f32) -> Self {
         Self {
             radius,
             colliding_entities: vec![],
-            collider_type,
         }
     }
 }
@@ -36,12 +23,23 @@ pub struct CollisionDetectionPlugin;
 
 impl Plugin for CollisionDetectionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, collision_detection);
+        app.add_systems(
+            Update,
+            collision_detection.in_set(InGameSet::CollisionDetection),
+        )
+        .add_systems(
+            Update,
+            (
+                despawn_on_collision::<Asteroid>,
+                despawn_on_collision::<Spaceship>,
+            )
+                .in_set(InGameSet::DespawnEntitys),
+        );
     }
 }
 
 fn collision_detection(mut query: Query<(Entity, &GlobalTransform, &mut Collidor)>) {
-    let mut colliding_entities: HashMap<Entity, Vec<CollidingEntity>> = HashMap::new();
+    let mut colliding_entities: HashMap<Entity, Vec<Entity>> = HashMap::new();
 
     // Detect collisions
     for (entity_a, transform_a, collidor_a) in query.iter() {
@@ -56,10 +54,7 @@ fn collision_detection(mut query: Query<(Entity, &GlobalTransform, &mut Collidor
                 colliding_entities
                     .entry(entity_a)
                     .or_default()
-                    .push(CollidingEntity {
-                        entity: entity_b,
-                        collider_type: collidor_b.collider_type,
-                    });
+                    .push(entity_b);
             }
         }
     }
@@ -69,6 +64,22 @@ fn collision_detection(mut query: Query<(Entity, &GlobalTransform, &mut Collidor
         collidor.colliding_entities.clear();
         if let Some(collisions) = colliding_entities.get(&entity) {
             collidor.colliding_entities.extend(collisions);
+        }
+    }
+}
+
+fn despawn_on_collision<T: Component>(
+    mut cmd: Commands,
+    query: Query<(Entity, &Collidor), With<T>>,
+) {
+    for (entity, collidor) in query.iter() {
+        for &collied_entity in collidor.colliding_entities.iter() {
+            if query.get(collied_entity).is_ok() {
+                continue;
+            }
+            if let Some(cmd) = cmd.get_entity(entity) {
+                cmd.despawn_recursive();
+            }
         }
     }
 }
