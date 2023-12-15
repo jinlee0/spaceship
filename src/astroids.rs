@@ -53,15 +53,13 @@ fn spawn_asteroid(
         return;
     }
 
-    let spaceship_pos = if let Ok(transform) = spaceship_query.get_single() {
-        transform.translation
-    } else {
+    let Ok(transform) = spaceship_query.get_single() else {
         return;
     };
 
     let mut rng = rand::thread_rng();
 
-    let translation = random_asteroid_pos(&mut rng, spaceship_pos);
+    let translation = random_asteroid_pos(&mut rng, transform.translation);
 
     let mut random_unit_vector =
         || Vec3::new(rng.gen_range(-1. ..1.), 0., rng.gen_range(-1. ..1.)).normalize();

@@ -57,9 +57,8 @@ fn spaceship_movement_controls(
     keyboard_input: Res<Input<KeyCode>>,
     time: Res<Time>,
 ) {
-    let (mut transform, mut velocity) = match query.get_single_mut() {
-        Ok(c) => c,
-        Err(_) => return,
+    let Ok((mut transform, mut velocity)) = query.get_single_mut() else {
+        return;
     };
 
     let mut movement = 0.;
@@ -89,9 +88,7 @@ fn spaceship_weaon_controls(
     keyboard_input: Res<Input<KeyCode>>,
     scene_assets: Res<SceneAssets>,
 ) {
-    let transform = if let Ok(t) = query.get_single() {
-        t
-    } else {
+    let Ok(transform) = query.get_single() else {
         return;
     };
 

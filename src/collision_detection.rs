@@ -30,8 +30,8 @@ impl Plugin for CollisionDetectionPlugin {
         .add_systems(
             Update,
             (
-                despawn_on_collision::<Asteroid>,
-                despawn_on_collision::<Spaceship>,
+                despawn_on_collided_with_other::<Asteroid>,
+                despawn_on_collided_with_other::<Spaceship>,
             )
                 .in_set(InGameSet::DespawnEntitys),
         );
@@ -68,7 +68,7 @@ fn collision_detection(mut query: Query<(Entity, &GlobalTransform, &mut Collidor
     }
 }
 
-fn despawn_on_collision<T: Component>(
+fn despawn_on_collided_with_other<T: Component>(
     mut cmd: Commands,
     query: Query<(Entity, &Collidor), With<T>>,
 ) {
@@ -77,9 +77,8 @@ fn despawn_on_collision<T: Component>(
             if query.get(collied_entity).is_ok() {
                 continue;
             }
-            if let Some(cmd) = cmd.get_entity(entity) {
-                cmd.despawn_recursive();
-            }
+            cmd.entity(entity).despawn_recursive();
+            break;
         }
     }
 }
