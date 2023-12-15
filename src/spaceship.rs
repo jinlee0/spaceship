@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use crate::{
     asset_loader::SceneAssets,
     collision_detection::Collidor,
+    despawn::FarAwayDespawnTarget,
     movement::{Acceleration, MovingObjectBundle, Velocity},
     schedule::InGameSet,
 };
@@ -107,6 +108,7 @@ fn spaceship_weaon_controls(
                 },
             },
             SpaceshipMissile,
+            FarAwayDespawnTarget,
         ));
     }
 }

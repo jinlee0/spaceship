@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{astroids::Asteroid, schedule::InGameSet, spaceship::SpaceshipMissile};
+use crate::schedule::InGameSet;
 
 const DESPAWN_DISTANCE: f32 = 100.;
 
@@ -15,11 +15,9 @@ impl Plugin for DespawnPlugin {
     }
 }
 
-type FarAwayDespawnTarget = Or<(With<Asteroid>, With<SpaceshipMissile>)>;
-
 fn despawn_far_away_entities(
     mut cmd: Commands,
-    query: Query<(Entity, &GlobalTransform), FarAwayDespawnTarget>,
+    query: Query<(Entity, &GlobalTransform), With<FarAwayDespawnTarget>>,
 ) {
     for (entity, transform) in query.iter() {
         if transform.translation().distance(Vec3::ZERO) > DESPAWN_DISTANCE {
@@ -27,3 +25,6 @@ fn despawn_far_away_entities(
         }
     }
 }
+
+#[derive(Component, Debug)]
+pub struct FarAwayDespawnTarget;

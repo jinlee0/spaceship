@@ -6,6 +6,7 @@ use rand::Rng;
 use crate::{
     asset_loader::SceneAssets,
     collision_detection::Collidor,
+    despawn::FarAwayDespawnTarget,
     movement::MovingObjectBundle,
     schedule::InGameSet,
     spaceship::{Spaceship, SPACESHIP_RADIUS},
@@ -78,6 +79,7 @@ fn spawn_asteroid(
             },
         },
         Asteroid,
+        FarAwayDespawnTarget,
     ));
 }
 
